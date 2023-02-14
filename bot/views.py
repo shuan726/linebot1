@@ -3,6 +3,9 @@ from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 import random
+import numpy as np
+import requests
+from bs4 import BeautifulSoup
 # Create your views here.
 
 from linebot import LineBotApi, WebhookHandler, WebhookParser
@@ -46,6 +49,8 @@ def callback(request):
                         message = random.choice(words)
                     elif '樂透' in text or 'lotto' in text:
                         message = lotto()
+                        if '大樂透' in text:
+                            message = big_lotto()
                     else:
                         message = text
                 else:
@@ -67,3 +72,18 @@ def lotto():
     result = ' '.join(map(str, numbers))
     n = random.randint(1, 50)
     return f'{result} 特別號為： {n}'
+
+
+def big_lotto():
+    url = 'https://www.taiwanlottery.com.tw/lotto/lotto649/history.aspx'
+    resp = requests.get(url)
+    soup = BeautifulSoup(resp.text, 'lxml')
+    trs = soup.find('table', class_="table_org td_hm").find_all('tr')
+    numbers = [td.text.strip() for td in trs[4].find_all('td')[1:]]
+    numbers = ' '.join(numbers[:-1]) + ' 特別號： '+numbers[-1]
+    data1 = [td.text.strip() for td in trs[0].find_all('td')]
+    data2 = [td.text.strip() for td in trs[1].find_all('td')]
+    data = list(zip(data1, data2))
+    title = ' : '.join(np.array(data).reshape(10))
+    result = f'{title}\n{numbers}'
+    return result
