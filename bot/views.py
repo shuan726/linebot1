@@ -7,11 +7,15 @@ import random
 
 from linebot import LineBotApi, WebhookHandler, WebhookParser
 from linebot.exceptions import InvalidSignatureError, LineBotApiError
-from linebot.models import MessageEvent, TextSendMessage, TextMessage
+from linebot.models import MessageEvent, TextSendMessage, TextMessage, ImageSendMessage
 
 
 line_bot_api = LineBotApi(settings.LINE_CHANNEL_ACCESS_TOKEN)
 parse = WebhookParser(settings.LINE_CHANNEL_SECRET)
+
+
+def index(requests):
+    return HttpResponse('<h1>LINEBOT APP</h1>')
 
 
 @csrf_exempt
@@ -33,10 +37,16 @@ def callback(request):
                     text = event.message.text
                     if '電影' in text or 'movie' in text:
                         message = 'https://movies.yahoo.com.tw/chart.html'
-                    elif '台北捷運' in text:
-                        message = 'https://kuopoting.github.io/k1/'
-                    elif '高雄捷運' in text:
-                        message = 'https://assets.piliapp.com/s3pxy/mrt_taiwan/kaohsiung/202210_zh.png'
+                    elif '捷運' in text:
+                        image_url = 'https://kuopoting.github.io/k1/assets/20200119_zh.png'
+                        line_bot_api.reply_message(
+                            event.reply_token, ImageSendMessage(original_content_url=image_url,
+                                                                preview_image_url=image_url))
+                        if '高雄' in text:
+                            image_url = 'https://assets.piliapp.com/s3pxy/mrt_taiwan/kaohsiung/202210_zh.png'
+                            line_bot_api.reply_message(
+                                event.reply_token, ImageSendMessage(original_content_url=image_url,
+                                                                    preview_image_url=image_url))
                     elif '早安' in text:
                         message = random.choice(words)
                     elif '樂透' in text or 'lotto' in text:
