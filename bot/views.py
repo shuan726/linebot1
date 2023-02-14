@@ -34,34 +34,29 @@ def callback(request):
         for event in events:
             if isinstance(event, MessageEvent):
                 if isinstance(event.message, TextMessage):
+                    message, image_url = None, None
                     text = event.message.text
                     if '電影' in text or 'movie' in text:
                         message = 'https://movies.yahoo.com.tw/chart.html'
                     elif '捷運' in text:
                         image_url = 'https://kuopoting.github.io/k1/assets/20200119_zh.png'
-                        line_bot_api.reply_message(
-                            event.reply_token, ImageSendMessage(original_content_url=image_url,
-                                                                preview_image_url=image_url))
                         if '高雄' in text:
                             image_url = 'https://assets.piliapp.com/s3pxy/mrt_taiwan/kaohsiung/202210_zh.png'
-                            line_bot_api.reply_message(
-                                event.reply_token, ImageSendMessage(original_content_url=image_url,
-                                                                    preview_image_url=image_url))
                     elif '早安' in text:
                         message = random.choice(words)
                     elif '樂透' in text or 'lotto' in text:
                         message = lotto()
                     else:
                         message = text
-                    line_bot_api.reply_message(
-                        event.reply_token,
-                        TextSendMessage(text=message)
-                    )
                 else:
-                    line_bot_api.reply_message(
-                        event.reply_token,
-                        TextSendMessage(text='無法辨識！')
-                    )
+                    message = '無法辨識！'
+
+                messageObject = TextSendMessage(text=message) if message is not None else \
+                    ImageSendMessage(
+                        original_content_url=image_url, preview_image_url=image_url)
+
+                line_bot_api.reply_message(event.reply_token, messageObject)
+
         return HttpResponse()
     else:
         return HttpResponseBadRequest()
